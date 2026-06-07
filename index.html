@@ -1,0 +1,1688 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>중학 과학 - 빛과 파동 통합 가상 실험실</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* 캔버스 드래그 시 텍스트 및 기본 터치 스크롤 방지 */
+        canvas {
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: none;
+        }
+        /* 스크롤바 디자인 */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans">
+
+    <!-- 헤더 -->
+    <header class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white shadow-md border-b border-slate-800 px-6 py-4">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <span class="text-3xl">🔬</span>
+                <div>
+                    <h1 class="text-xl md:text-2xl font-bold tracking-tight">빛과 파동 통합 가상 실험실</h1>
+                    <p class="text-xs text-slate-400 mt-0.5">중학교 2학년 과학 | 1. 거울과 렌즈에 의한 상 & 2. 빛의 삼원색 합성</p>
+                </div>
+            </div>
+            
+            <!-- 주 메뉴: 대형 탭 전환기 -->
+            <div class="flex gap-2 bg-slate-900/90 p-1.5 rounded-xl border border-slate-700/80 backdrop-blur">
+                <button onclick="setGlobalTab('optics')" id="gt-optics" class="px-4 py-2 rounded-lg text-sm font-black transition-all bg-indigo-600 text-white shadow-lg">
+                    🪞 거울 & 렌즈 실험실
+                </button>
+                <button onclick="setGlobalTab('color')" id="gt-color" class="px-4 py-2 rounded-lg text-sm font-black transition-all text-slate-400 hover:text-white">
+                    🌈 빛의 삼원색 실험실
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- 메인 컨텐츠 영역 -->
+    <main class="flex-grow max-w-7xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- ========================================== -->
+        <!-- [1] 거울과 렌즈 실험용 왼쪽 제어반 -->
+        <!-- ========================================== -->
+        <div id="panel-optics-left" class="lg:col-span-4 flex flex-col gap-6">
+            
+            <!-- 광학 도구 선택기 -->
+            <div class="bg-slate-900 rounded-2xl shadow-xl border border-slate-800 p-5">
+                <h2 class="text-base font-bold text-white mb-4 flex items-center gap-2">
+                    <span class="text-indigo-400">⚙️</span> 1. 광학 도구 선택
+                </h2>
+                
+                <!-- 거울 선택 -->
+                <div class="mb-4">
+                    <p class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-2">거울 (빛의 반사)</p>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button onclick="selectOpticsDevice('plane-mirror')" id="btn-plane-mirror" class="optics-device-btn py-2 px-1 text-xs font-bold rounded-xl border border-slate-800 bg-slate-950 text-slate-300 hover:bg-slate-800 transition flex flex-col items-center gap-1">
+                            <span class="text-lg">🪞</span> 평면 거울
+                        </button>
+                        <button onclick="selectOpticsDevice('concave-mirror')" id="btn-concave-mirror" class="optics-device-btn py-2 px-1 text-xs font-bold rounded-xl border-2 border-indigo-600 bg-indigo-950/40 text-indigo-300 transition flex flex-col items-center gap-1">
+                            <span class="text-lg">🥣</span> 오목 거울
+                        </button>
+                        <button onclick="selectOpticsDevice('convex-mirror')" id="btn-convex-mirror" class="optics-device-btn py-2 px-1 text-xs font-bold rounded-xl border border-slate-800 bg-slate-950 text-slate-300 hover:bg-slate-800 transition flex flex-col items-center gap-1">
+                            <span class="text-lg">🏀</span> 볼록 거울
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 렌즈 선택 -->
+                <div>
+                    <p class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-2">렌즈 (빛의 굴절)</p>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="selectOpticsDevice('convex-lens')" id="btn-convex-lens" class="optics-device-btn py-2 px-2 text-xs font-bold rounded-xl border border-slate-800 bg-slate-950 text-slate-300 hover:bg-slate-800 transition flex flex-col items-center gap-1 justify-center">
+                            <span class="text-lg">🔎</span> 볼록 렌즈
+                        </button>
+                        <button onclick="selectOpticsDevice('concave-lens')" id="btn-concave-lens" class="optics-device-btn py-2 px-2 text-xs font-bold rounded-xl border border-slate-800 bg-slate-950 text-slate-300 hover:bg-slate-800 transition flex flex-col items-center gap-1 justify-center">
+                            <span class="text-lg">👓</span> 오목 렌즈
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 미세 조절 슬라이더 -->
+            <div class="bg-slate-900 rounded-2xl shadow-xl border border-slate-800 p-5">
+                <h2 class="text-base font-bold text-white mb-4 flex items-center gap-2">
+                    <span class="text-indigo-400">sliders</span> 2. 수치 정밀 조절
+                </h2>
+                
+                <div class="space-y-4">
+                    <!-- 물체 거리 -->
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <label class="text-xs font-bold text-slate-400">물체와 거울/렌즈 사이 거리</label>
+                            <span id="val-distance" class="text-xs font-bold text-indigo-400 bg-indigo-950/50 px-2 py-0.5 rounded-full">150 px</span>
+                        </div>
+                        <input type="range" id="slide-distance" min="10" max="380" value="150" oninput="onOpticsSliderChange()" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-600">
+                        <div class="flex justify-between text-[10px] text-slate-500 mt-1">
+                            <span>가까움</span>
+                            <span>멀어짐</span>
+                        </div>
+                    </div>
+
+                    <!-- 물체 높이 -->
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <label class="text-xs font-bold text-slate-400">물체(촛불)의 원래 크기</label>
+                            <span id="val-height" class="text-xs font-bold text-indigo-400 bg-indigo-950/50 px-2 py-0.5 rounded-full">60 px</span>
+                        </div>
+                        <input type="range" id="slide-height" min="10" max="120" value="60" oninput="onOpticsSliderChange()" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-600">
+                    </div>
+
+                    <!-- 거울/렌즈 크기 -->
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <label class="text-xs font-bold text-slate-400">거울/렌즈의 크기 (높이)</label>
+                            <span id="val-device-size" class="text-xs font-bold text-indigo-400 bg-indigo-950/50 px-2 py-0.5 rounded-full">200 px</span>
+                        </div>
+                        <input type="range" id="slide-device-size" min="80" max="280" value="200" oninput="onOpticsSliderChange()" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-600">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 상 분석 정보 박스 -->
+            <div class="bg-slate-900 rounded-2xl shadow-xl border border-slate-800 p-5 flex-grow flex flex-col justify-between">
+                <div>
+                    <h2 class="text-base font-bold text-white mb-3 flex items-center gap-2">
+                        <span class="text-indigo-400">💡</span> 상의 특징 분석
+                    </h2>
+                    
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center py-1.5 border-b border-slate-800">
+                            <span class="text-xs text-slate-400">물체의 위치</span>
+                            <span id="info-object-pos" class="text-xs font-bold text-slate-200">-</span>
+                        </div>
+                        <div class="flex justify-between items-center py-1.5 border-b border-slate-800">
+                            <span class="text-xs text-slate-400">상의 모양(방향)</span>
+                            <span id="info-image-orient" class="text-xs font-bold text-slate-200">-</span>
+                        </div>
+                        <div class="flex justify-between items-center py-1.5 border-b border-slate-800">
+                            <span class="text-xs text-slate-400">상의 크기</span>
+                            <span id="info-image-size" class="text-xs font-bold text-slate-200">-</span>
+                        </div>
+                        <div class="flex justify-between items-center py-1.5 border-b border-slate-800">
+                            <span class="text-xs text-slate-400">실상 / 허상 구분</span>
+                            <span id="info-image-type" class="text-xs font-bold text-slate-200">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4 p-3 bg-slate-950 rounded-xl border border-slate-800">
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">우리 주변의 쓰임새 🏠</p>
+                    <p id="info-usage" class="text-xs text-slate-400 leading-relaxed font-medium">-</p>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ========================================== -->
+        <!-- [2] 빛의 삼원색 실험용 왼쪽 제어반 (초기 hidden) -->
+        <!-- ========================================== -->
+        <div id="panel-color-left" class="lg:col-span-4 flex flex-col gap-6 hidden">
+            
+            <!-- 개별 조명 세기 및 크기 조절기 -->
+            <div class="bg-slate-900 rounded-2xl shadow-xl border border-slate-800 p-5">
+                <h2 class="text-base font-bold text-white mb-4 flex items-center gap-2">
+                    <span class="text-amber-400">⚙️</span> 1. 조명 세기 및 크기 조절
+                </h2>
+                
+                <div class="space-y-4">
+                    <!-- 빨강 조명 -->
+                    <div class="p-3 bg-red-950/20 border border-red-900/40 rounded-xl">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-xs font-bold text-red-400">🔴 빨간색 조명 (Red)</span>
+                            <span id="val-r" class="text-xs font-bold text-red-400 bg-red-900/30 px-2 py-0.5 rounded-full">100%</span>
+                        </div>
+                        <input type="range" id="slide-r-int" min="0" max="100" value="100" oninput="onColorSliderChange()" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-red-500">
+                        
+                        <div class="flex justify-between items-center mt-2">
+                            <span class="text-[10px] text-slate-500">조명 크기(반경)</span>
+                            <span id="val-r-rad" class="text-[10px] text-red-400 font-bold">120px</span>
+                        </div>
+                        <input type="range" id="slide-r-rad" min="60" max="180" value="120" oninput="onColorSliderChange()" class="w-full h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-red-500">
+                    </div>
+
+                    <!-- 초록 조명 -->
+                    <div class="p-3 bg-green-950/20 border border-green-900/40 rounded-xl">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-xs font-bold text-green-400">🟢 초록색 조명 (Green)</span>
+                            <span id="val-g" class="text-xs font-bold text-green-400 bg-green-900/30 px-2 py-0.5 rounded-full">100%</span>
+                        </div>
+                        <input type="range" id="slide-g-int" min="0" max="100" value="100" oninput="onColorSliderChange()" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-green-500">
+                        
+                        <div class="flex justify-between items-center mt-2">
+                            <span class="text-[10px] text-slate-500">조명 크기(반경)</span>
+                            <span id="val-g-rad" class="text-[10px] text-green-400 font-bold">120px</span>
+                        </div>
+                        <input type="range" id="slide-g-rad" min="60" max="180" value="120" oninput="onColorSliderChange()" class="w-full h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-green-500">
+                    </div>
+
+                    <!-- 파랑 조명 -->
+                    <div class="p-3 bg-blue-950/20 border border-blue-900/40 rounded-xl">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-xs font-bold text-blue-400">🔵 파란색 조명 (Blue)</span>
+                            <span id="val-b" class="text-xs font-bold text-blue-400 bg-blue-900/30 px-2 py-0.5 rounded-full">100%</span>
+                        </div>
+                        <input type="range" id="slide-b-int" min="0" max="100" value="100" oninput="onColorSliderChange()" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-blue-500">
+                        
+                        <div class="flex justify-between items-center mt-2">
+                            <span class="text-[10px] text-slate-500">조명 크기(반경)</span>
+                            <span id="val-b-rad" class="text-[10px] text-blue-400 font-bold">120px</span>
+                        </div>
+                        <input type="range" id="slide-b-rad" min="60" max="180" value="120" oninput="onColorSliderChange()" class="w-full h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-blue-500">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 설명 상자 -->
+            <div class="bg-slate-900 rounded-2xl shadow-xl border border-slate-800 p-5 flex-grow flex flex-col justify-between">
+                <div>
+                    <!-- [A] 조명 합성 설명 -->
+                    <div id="desc-blend" class="space-y-3">
+                        <h2 class="text-base font-bold text-white mb-2 flex items-center gap-2">
+                            <span class="text-indigo-400">💡</span> 빛의 합성 원리
+                        </h2>
+                        <div class="p-3.5 bg-slate-950/60 rounded-xl border border-slate-800 space-y-2 text-xs text-slate-300 leading-relaxed">
+                            <p>빛은 섞을수록 밝아지는 <strong class="text-yellow-400">가산 혼합</strong>을 합니다.</p>
+                            <div class="h-px bg-slate-800 my-2"></div>
+                            <p class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-yellow-500 inline-block"></span> <strong>R + G = 노란색 (Yellow)</strong></p>
+                            <p class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-cyan-400 inline-block"></span> <strong>G + B = 청록색 (Cyan)</strong></p>
+                            <p class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-fuchsia-400 inline-block"></span> <strong>R + B = 자홍색 (Magenta)</strong></p>
+                            <p class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-white inline-block"></span> <strong>R + G + B = 흰색 (White)</strong></p>
+                        </div>
+                    </div>
+
+                    <!-- [B] 물체의 색 설명 -->
+                    <div id="desc-object" class="hidden space-y-3">
+                        <h2 class="text-base font-bold text-white mb-2 flex items-center gap-2">
+                            <span class="text-rose-400">🍎</span> 물체의 색이 보이는 원리
+                        </h2>
+                        <div class="p-4 bg-slate-950/60 rounded-xl border border-slate-800 space-y-3 text-xs text-slate-300 leading-relaxed">
+                            <p>물체는 고유한 색의 빛만 <strong class="text-emerald-400">반사</strong>하고, 나머지 빛은 전부 <strong class="text-red-400">흡수</strong>합니다. 우리 눈에는 반사되어 튕겨 나온 빛만 도달하여 색을 보게 됩니다.</p>
+                            <div class="h-px bg-slate-800 my-1"></div>
+                            <div class="space-y-2">
+                                <p><span class="text-red-400 font-bold">🍎 빨간 사과:</span> 빨간색 빛만 반사하고 나머지는 흡수합니다. 초록 조명만 비추면 반사할 빨간 빛이 없어 <strong>검은색</strong>으로 보임.</p>
+                                <p><span class="text-yellow-400 font-bold">🍌 노란 바나나:</span> 빨간빛과 초록빛을 동시에 반사합니다. 파란 조명만 비추면 반사할 수 없어 <strong>검은색</strong>으로 보임.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 위치 리셋 버튼 -->
+                <div class="mt-6 pt-4 border-t border-slate-800">
+                    <button onclick="resetColors()" class="w-full bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold py-2.5 px-4 rounded-xl transition border border-slate-700">
+                        🔄 조명 및 센서 초기 위치로 리셋
+                    </button>
+                </div>
+            </div>
+
+        </div>
+
+
+        <!-- ========================================== -->
+        <!-- [1] 거울과 렌즈 실험용 오른쪽 가상 캔버스 뷰 -->
+        <!-- ========================================== -->
+        <div id="panel-optics-right" class="lg:col-span-8 flex flex-col gap-4">
+            
+            <div class="bg-slate-900 rounded-2xl shadow-xl border border-slate-800 p-4 flex flex-col h-full">
+                <!-- 툴바 -->
+                <div class="flex justify-between items-center mb-3">
+                    <div class="flex items-center gap-2">
+                        <span class="w-2.5 h-2.5 bg-indigo-500 rounded-full animate-pulse"></span>
+                        <span class="text-xs font-bold text-slate-400">실시간 광선 추적 및 정면 관찰실 (초점 F = 100px)</span>
+                    </div>
+                    <!-- 리셋 버튼 -->
+                    <button onclick="resetOptics()" class="bg-slate-800 hover:bg-slate-700 text-white text-[10px] font-bold px-3 py-1.5 rounded-lg border border-slate-700 transition">
+                        🔄 위치 리셋
+                    </button>
+                </div>
+
+                <!-- 듀얼 인터랙티브 캔버스 -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 flex-grow min-h-[420px]">
+                    <!-- 측면 뷰 -->
+                    <div class="relative bg-slate-950 rounded-xl overflow-hidden flex flex-col border border-slate-800">
+                        <div class="absolute top-2 left-2 bg-slate-950/85 text-[10px] text-white/90 px-2 py-1 rounded border border-slate-800 z-10 flex items-center gap-1">
+                            <span>📐</span> <b>측면 광선 분석 뷰</b> (Side View)
+                        </div>
+                        <canvas id="optics-canvas" class="w-full h-full block cursor-crosshair flex-grow"></canvas>
+                        
+                        <div class="absolute bottom-2 left-2 bg-black/60 backdrop-blur-sm text-[10px] text-white/90 px-2 py-1 rounded pointer-events-none">
+                            💡 <b>왼쪽 촛불</b>을 드래그해 보세요!
+                        </div>
+                    </div>
+
+                    <!-- 정면 관찰 뷰 -->
+                    <div class="relative bg-slate-950 rounded-xl overflow-hidden flex flex-col border border-slate-800">
+                        <div class="absolute top-2 left-2 bg-slate-950/85 text-[10px] text-white/90 px-2 py-1 rounded border border-slate-800 z-10 flex items-center gap-1">
+                            <span>👁️</span> <b>실제 정면 관찰 뷰</b> (Front View)
+                        </div>
+                        <canvas id="front-canvas" class="w-full h-full block flex-grow"></canvas>
+                        
+                        <div id="front-desc" class="absolute bottom-2 left-2 right-2 text-center bg-indigo-950/80 border border-indigo-900/50 backdrop-blur-sm text-[10px] md:text-xs text-indigo-200 px-3 py-2 rounded-lg pointer-events-none font-medium leading-relaxed">
+                            로딩 중...
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 조작 가이드 -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mt-4 text-[11px] leading-tight text-slate-400">
+                    <div class="bg-slate-950 border border-slate-800 rounded-xl p-3">
+                        <p class="font-bold text-amber-500 mb-0.5">🟡 노란색 실선</p>
+                        <p>물체에서 나와서 실제로 반사/굴절되어 나아가는 빛의 경로입니다.</p>
+                    </div>
+                    <div class="bg-slate-950 border border-slate-800 rounded-xl p-3">
+                        <p class="font-bold text-rose-500 mb-0.5">🔴 분홍색 점선</p>
+                        <p>빛이 퍼져나갈 때, 눈이 인식하는 '빛이 가상으로 이어져 모이는 경로'입니다.</p>
+                    </div>
+                    <div class="bg-slate-950 border border-slate-800 rounded-xl p-3">
+                        <p class="font-bold text-indigo-400 mb-0.5">📏 크기 조절 슬라이더</p>
+                        <p>거울/렌즈의 크기를 조절해 더 넓은 범위 of 빛이 한곳에 모이는 원리를 이해합니다.</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ========================================== -->
+        <!-- [2] 빛의 삼원색 실험용 오른쪽 가상 캔버스 뷰 (초기 hidden) -->
+        <!-- ========================================== -->
+        <div id="panel-color-right" class="lg:col-span-8 flex flex-col gap-4 hidden">
+            
+            <div class="bg-slate-900 rounded-2xl shadow-xl border border-slate-800 p-4 flex flex-col h-full">
+                <!-- 상단 서브 탭 전환 및 가이드 -->
+                <div class="flex justify-between items-center mb-3">
+                    <!-- 미니 탭선택기 -->
+                    <div class="flex gap-2 bg-slate-950 p-0.5 rounded-lg border border-slate-800">
+                        <button onclick="changeColorSubTab('blend')" id="tab-color-blend" class="px-3 py-1 rounded bg-indigo-600 text-white text-xs font-bold transition-all">💡 조명 합성</button>
+                        <button onclick="changeColorSubTab('object')" id="tab-color-object" class="px-3 py-1 text-slate-400 text-xs font-bold transition-all hover:text-white">🍎 물체의 색 관찰</button>
+                    </div>
+                    <span id="color-title" class="text-xs font-bold text-slate-400">실시간 광원 합성 스크린</span>
+                </div>
+
+                <!-- 인터랙티브 캔버스 -->
+                <div class="relative flex-grow bg-black rounded-xl overflow-hidden min-h-[420px] border border-slate-950 flex flex-col">
+                    <canvas id="stage-canvas" class="w-full h-full block cursor-crosshair"></canvas>
+                    
+                    <div class="absolute bottom-3 left-3 right-3 bg-slate-950/85 backdrop-blur-sm text-[11px] text-slate-300 px-3 py-2.5 rounded-xl border border-slate-800 pointer-events-none flex items-center gap-2">
+                        <span class="text-base">💡</span>
+                        <span id="tooltip-text"><b>R, G, B 조명 핸들</b>과 <b>🎯빛 감지 센서</b>를 마우스나 터치로 원하는 방향에 끌어다 놓으세요!</span>
+                    </div>
+                </div>
+
+                <!-- 센서 리포트 보드 -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mt-4 text-xs">
+                    <div class="bg-slate-950 border border-slate-800/80 rounded-xl p-3.5 text-center flex flex-col justify-center items-center">
+                        <p class="text-slate-400 font-bold mb-1.5">🎯 센서 탐지 색상</p>
+                        <div class="flex items-center gap-2.5">
+                            <span id="sensor-color-preview" class="w-6 h-6 rounded-full inline-block border border-slate-700 shadow-inner"></span>
+                            <span id="sensor-color-name" class="font-black text-white text-sm">로딩 중...</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-950 border border-slate-800/80 rounded-xl p-3.5 text-center flex flex-col justify-center">
+                        <p class="text-slate-400 font-bold mb-1.5">📊 검출된 빛의 양</p>
+                        <div class="grid grid-cols-3 gap-1.5 font-bold text-xs">
+                            <span class="text-red-400">R: <span id="sensor-val-r">0</span></span>
+                            <span class="text-green-400">G: <span id="sensor-val-g">0</span></span>
+                            <span class="text-blue-400">B: <span id="sensor-val-b">0</span></span>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-950 border border-slate-800/80 rounded-xl p-3 flex items-center justify-center">
+                        <p id="sensor-explain-text" class="text-slate-300 text-center text-[11px] leading-relaxed">
+                            센서를 움직여 겹치는 구역 위에 올리면, 실시간 혼합 및 시각 세포 인지 작동 과정이 해독됩니다.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- 푸터 -->
+    <footer class="bg-slate-950 border-t border-slate-900 py-4 px-6 text-center text-xs text-slate-500 mt-auto">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-2">
+            <p>© 빛과 파동 디지털 통합 교육 보조 자료 - 중학교 2학년 과학 교과 보충용</p>
+            <p>고성능 GPU 가속 방식 렌더링 최적화 탑재</p>
+        </div>
+    </footer>
+
+    <!-- 자바스크립트 소스코드 -->
+    <script>
+        // --- [공통 및 전역 탭 상태] ---
+        let currentGlobalTab = 'optics'; // 'optics' (거울/렌즈), 'color' (빛의삼원색)
+
+        // --- [1. 거울 & 렌즈 변수 및 데이터] ---
+        let opticsObjX = 150;
+        let opticsObjH = 60;
+        let opticsDeviceSize = 200; // 거울/렌즈의 세로 지름 높이
+        const opticsFocalLength = 100; // 고정된 초점
+        let opticsCurrentDevice = 'concave-mirror'; // 'plane-mirror', 'concave-mirror', 'convex-mirror', 'convex-lens', 'concave-lens'
+
+        const opticsCanvas = document.getElementById('optics-canvas');
+        const opticsCtx = opticsCanvas.getContext('2d');
+        const frontCanvas = document.getElementById('front-canvas');
+        const frontCtx = frontCanvas.getContext('2d');
+
+        let isOpticsDragging = false;
+
+        // --- [2. 빛의 삼원색 변수 및 데이터] ---
+        let colorSubTab = 'blend'; // 'blend' (조명합성), 'object' (물체관찰)
+
+        const lights = {
+            red: { id: 'red', name: '빨강 (Red)', x: 0, y: 0, radius: 120, intensity: 1.0, color: '#ff0000', handleColor: '#ef4444' },
+            green: { id: 'green', name: '초록 (Green)', x: 0, y: 0, radius: 120, intensity: 1.0, color: '#00ff00', handleColor: '#22c55e' },
+            blue: { id: 'blue', name: '파랑 (Blue)', x: 0, y: 0, radius: 120, intensity: 1.0, color: '#0000ff', handleColor: '#3b82f6' }
+        };
+
+        const sensor = { x: 0, y: 0, radius: 18, color: '#ffffff' };
+
+        const sceneObjects = [
+            { id: 'apple', name: '빨간 사과', emoji: '🍎', x: 0, y: 0, radius: 24, reflect: { r: 1.0, g: 0.0, b: 0.0 } },
+            { id: 'leaf', name: '초록 잎새', emoji: '🍃', x: 0, y: 0, radius: 24, reflect: { r: 0.0, g: 1.0, b: 0.0 } },
+            { id: 'banana', name: '노란 바나나', emoji: '🍌', x: 0, y: 0, radius: 24, reflect: { r: 1.0, g: 0.9, b: 0.0 } },
+            { id: 'cap', name: '파란 모자', emoji: '🧢', x: 0, y: 0, radius: 24, reflect: { r: 0.0, g: 0.0, b: 1.0 } }
+        ];
+
+        const stageCanvas = document.getElementById('stage-canvas');
+        const stageCtx = stageCanvas.getContext('2d', { willReadFrequently: true });
+
+        let isColorDragging = false;
+        let colorDragTarget = null;
+        let colorDragOffsetX = 0;
+        let colorDragOffsetY = 0;
+
+
+        // --- [초기 설정 및 창 바인딩] ---
+        window.onload = function() {
+            setupAllCanvasSizes();
+            resetOptics();
+            resetColors();
+            renderAll();
+
+            // 반응형 리사이징 시 보정
+            window.addEventListener('resize', () => {
+                const oldWOptics = opticsCanvas.width / (window.devicePixelRatio || 1);
+                const oldHOptics = opticsCanvas.height / (window.devicePixelRatio || 1);
+                const oldWStage = stageCanvas.width / (window.devicePixelRatio || 1);
+                const oldHStage = stageCanvas.height / (window.devicePixelRatio || 1);
+
+                setupAllCanvasSizes();
+
+                const newWOptics = opticsCanvas.width / (window.devicePixelRatio || 1);
+                const newHOptics = opticsCanvas.height / (window.devicePixelRatio || 1);
+                const newWStage = stageCanvas.width / (window.devicePixelRatio || 1);
+                const newHStage = stageCanvas.height / (window.devicePixelRatio || 1);
+
+                // 거울 렌즈 물체 비율 보정
+                opticsObjX *= (newWOptics / oldWOptics);
+
+                // 삼원색 조명 및 오브젝트 비율 보정
+                const rxColor = newWStage / oldWStage;
+                const ryColor = newHStage / oldHStage;
+                Object.keys(lights).forEach(k => {
+                    lights[k].x *= rxColor;
+                    lights[k].y *= ryColor;
+                });
+                sensor.x *= rxColor;
+                sensor.y *= ryColor;
+                sceneObjects.forEach(obj => {
+                    obj.x *= rxColor;
+                    obj.y *= ryColor;
+                });
+
+                renderAll();
+            });
+
+            // 마우스 & 터치 이벤트 등록 (독립적 설계)
+            opticsCanvas.addEventListener('mousedown', onOpticsMouseDown);
+            opticsCanvas.addEventListener('mousemove', onOpticsMouseMove);
+            opticsCanvas.addEventListener('mouseup', onOpticsMouseUp);
+            opticsCanvas.addEventListener('mouseleave', onOpticsMouseUp);
+
+            opticsCanvas.addEventListener('touchstart', onOpticsTouchStart, { passive: false });
+            opticsCanvas.addEventListener('touchmove', onOpticsTouchMove, { passive: false });
+            opticsCanvas.addEventListener('touchend', onOpticsMouseUp);
+
+            stageCanvas.addEventListener('mousedown', onColorMouseDown);
+            stageCanvas.addEventListener('mousemove', onColorMouseMove);
+            stageCanvas.addEventListener('mouseup', onColorMouseUp);
+            stageCanvas.addEventListener('mouseleave', onColorMouseUp);
+
+            stageCanvas.addEventListener('touchstart', onColorTouchStart, { passive: false });
+            stageCanvas.addEventListener('touchmove', onColorTouchMove, { passive: false });
+            stageCanvas.addEventListener('touchend', onColorMouseUp);
+        };
+
+        // 캔버스 사이즈 배정
+        function setupAllCanvasSizes() {
+            const dpr = window.devicePixelRatio || 1;
+
+            // Optics
+            const rectO = opticsCanvas.getBoundingClientRect();
+            opticsCanvas.width = (rectO.width || 400) * dpr;
+            opticsCanvas.height = (rectO.height || 420) * dpr;
+            opticsCtx.scale(dpr, dpr);
+
+            // Front View
+            const rectF = frontCanvas.getBoundingClientRect();
+            frontCanvas.width = (rectF.width || 200) * dpr;
+            frontCanvas.height = (rectF.height || 420) * dpr;
+            frontCtx.scale(dpr, dpr);
+
+            // Stage Color
+            const rectS = stageCanvas.getBoundingClientRect();
+            stageCanvas.width = (rectS.width || 600) * dpr;
+            stageCanvas.height = (rectS.height || 420) * dpr;
+            stageCtx.scale(dpr, dpr);
+        }
+
+        // 전체 렌더링 트리거
+        function renderAll() {
+            if (currentGlobalTab === 'optics') {
+                renderOptics();
+            } else {
+                renderColorStage();
+            }
+        }
+
+        // --- [글로벌 탭 제어판 전환] ---
+        function setGlobalTab(tabName) {
+            currentGlobalTab = tabName;
+
+            // 버튼 클래스 초기화 및 부여
+            document.getElementById('gt-optics').className = "px-4 py-2 rounded-lg text-sm font-black transition-all text-slate-400 hover:text-white";
+            document.getElementById('gt-color').className = "px-4 py-2 rounded-lg text-sm font-black transition-all text-slate-400 hover:text-white";
+            
+            const activeBtn = document.getElementById(`gt-${tabName}`);
+            activeBtn.className = "px-4 py-2 rounded-lg text-sm font-black transition-all bg-indigo-600 text-white shadow-lg";
+
+            // 가시성 정리
+            document.getElementById('panel-optics-left').classList.add('hidden');
+            document.getElementById('panel-optics-right').classList.add('hidden');
+            document.getElementById('panel-color-left').classList.add('hidden');
+            document.getElementById('panel-color-right').classList.add('hidden');
+
+            document.getElementById(`panel-${tabName}-left`).classList.remove('hidden');
+            document.getElementById(`panel-${tabName}-right`).classList.remove('hidden');
+
+            // 렌더링 보정 딜레이 구동
+            setTimeout(() => {
+                setupAllCanvasSizes();
+                renderAll();
+                if (tabName === 'optics') updateOpticsUI();
+                else updateColorUI();
+            }, 30);
+        }
+
+
+        // ====================================================================
+        // --- [PART 1. 거울 & 렌즈 시뮬레이션 물리 연산 및 그림] ---
+        // ====================================================================
+        
+        function resetOptics() {
+            opticsObjX = 150;
+            opticsObjH = 60;
+            opticsDeviceSize = 200;
+            updateOpticsUI();
+            renderOptics();
+        }
+
+        function selectOpticsDevice(deviceName) {
+            opticsCurrentDevice = deviceName;
+
+            document.querySelectorAll('.optics-device-btn').forEach(btn => {
+                btn.className = "optics-device-btn py-2 px-1 text-xs font-bold rounded-xl border border-slate-800 bg-slate-950 text-slate-300 hover:bg-slate-800 transition flex flex-col items-center gap-1";
+            });
+
+            const activeBtn = document.getElementById(`btn-${deviceName}`);
+            if (activeBtn) {
+                if (deviceName.includes('lens')) {
+                    activeBtn.className = "optics-device-btn py-2 px-2 text-xs font-bold rounded-xl border-2 border-indigo-600 bg-indigo-950/40 text-indigo-300 transition flex flex-col items-center gap-1 justify-center";
+                } else {
+                    activeBtn.className = "optics-device-btn py-2 px-1 text-xs font-bold rounded-xl border-2 border-indigo-600 bg-indigo-950/40 text-indigo-300 transition flex flex-col items-center gap-1";
+                }
+            }
+
+            updateOpticsUI();
+            renderOptics();
+        }
+
+        function onOpticsSliderChange() {
+            opticsObjX = parseInt(document.getElementById('slide-distance').value);
+            opticsObjH = parseInt(document.getElementById('slide-height').value);
+            opticsDeviceSize = parseInt(document.getElementById('slide-device-size').value);
+
+            updateOpticsUI();
+            renderOptics();
+        }
+
+        function updateOpticsUI() {
+            document.getElementById('slide-distance').value = opticsObjX;
+            document.getElementById('slide-height').value = opticsObjH;
+            document.getElementById('slide-device-size').value = opticsDeviceSize;
+
+            document.getElementById('val-distance').innerText = `${opticsObjX} px`;
+            document.getElementById('val-height').innerText = `${opticsObjH} px`;
+            document.getElementById('val-device-size').innerText = `${opticsDeviceSize} px`;
+
+            // 분석 갱신
+            let objPosText = ""; let orientText = ""; let sizeText = ""; let typeText = ""; let usageText = ""; let descText = "";
+            const f = opticsFocalLength;
+
+            if (opticsCurrentDevice === 'plane-mirror') {
+                objPosText = "거울 앞 어떤 거리든"; orientText = "똑바로 선 모습 (좌우 대칭)"; sizeText = "실물과 완전히 같음 (1:1)"; typeText = "똑바로 선 허상";
+                usageText = "가정 내 얼굴을 비춰보는 거울, 전신 거울 등에 쓰입니다.";
+                descText = "<b>평면거울:</b> 대칭 위치에 실물과 동일한 바로 선 상(정립 허상)이 선명하게 반사됩니다.";
+            } else if (opticsCurrentDevice === 'concave-mirror') {
+                if (opticsObjX < f) {
+                    objPosText = "초점 안쪽 (매우 가까움)"; orientText = "똑바로 선 모습"; sizeText = "실물보다 크게 보임 (확대)"; typeText = "똑바로 선 허상";
+                    usageText = "치과 치료용 입안 거울, 화장 및 면도용 거울 등에 쓰입니다.";
+                    descText = "<b>오목거울 (초점 안쪽):</b> 바로 가까이 볼 때처럼 똑바로 선 커다란 상(정립 허상)이 관찰됩니다.";
+                } else if (opticsObjX === f) {
+                    objPosText = "초점 위 (빛이 겹치지 않음)"; orientText = "정의할 수 없음"; sizeText = "흐려져서 구별 불가"; typeText = "상 없음";
+                    usageText = "손전등, 자동차 헤드라이트의 반사경으로 강한 평행광을 보낼 때 쓰입니다.";
+                    descText = "<b>오목거울 (초점 위치):</b> 반사광이 광축과 완전히 평행하여 뽀얗게 상이 흐려지며 사라집니다.";
+                } else {
+                    objPosText = opticsObjX > 2*f ? "초점거리 2배보다 먼 곳" : "초점과 초점거리 2배 사이";
+                    orientText = "거꾸로 뒤집힌 모습";
+                    sizeText = opticsObjX > 2*f ? "실물보다 작음 (축소)" : (Math.abs(opticsObjX - 2*f) < 5 ? "실물과 같음" : "실물보다 큼 (확대)");
+                    typeText = "거꾸로 선 실상 (화면에 맺힘)";
+                    usageText = "태양열 조리기, 천체 망원경의 반사경처럼 멀리 있는 빛을 한 지점에 모을 때 유용합니다.";
+                    descText = `<b>오목거울 (초점 바깥):</b> 뒤집힌 상(도립 실상)이 생깁니다. ${opticsObjX > 2*f ? '거리가 매우 멀어 실물보다 작습니다.' : '실물보다 확대되거나 비슷한 크기입니다.'}`;
+                }
+            } else if (opticsCurrentDevice === 'convex-mirror') {
+                objPosText = "거울 앞 어디에나"; orientText = "똑바로 선 모습"; sizeText = "실물보다 항상 작아 보임"; typeText = "똑바로 선 허상";
+                usageText = "도로 모퉁이의 안전거울, 자동차 사이드미러, 편의점 방범용 거울 등 넓은 범위를 비출 때 쓰입니다.";
+                descText = "<b>볼록거울:</b> 물체가 어디에 있든지 항상 작고 바로 선 상(정립 허상)이 생겨, 광시야각 안전 용도로 유용합니다.";
+            } else if (opticsCurrentDevice === 'convex-lens') {
+                if (opticsObjX < f) {
+                    objPosText = "초점 안쪽 (매우 가까움)"; orientText = "똑바로 선 모습"; sizeText = "실물보다 크게 보임 (확대)"; typeText = "똑바로 선 허상";
+                    usageText = "돋보기안경, 부품 조립용 정밀 확대경 등에 대표적으로 사용됩니다.";
+                    descText = "<b>볼록렌즈 (초점 안쪽):</b> 돋보기를 갖다 대었을 때처럼 바로 서서 훨씬 확대되어 보이는 허상이 보입니다.";
+                } else if (opticsObjX === f) {
+                    objPosText = "초점 위"; orientText = "정의할 수 없음"; sizeText = "흐려져서 판별 불가"; typeText = "상 없음";
+                    usageText = "평행선을 쏴서 빛을 멀리 투사하는 등대 서치라이트 등에 응용됩니다.";
+                    descText = "<b>볼록렌즈 (초점 위치):</b> 굴절 광선이 평행하게 비추어 상이 선명히 맺히지 못해 뽀얗게 흩어집니다.";
+                } else {
+                    objPosText = opticsObjX > 2*f ? "초점거리 2배보다 먼 곳" : "초점과 초점거리 2배 사이";
+                    orientText = "거꾸로 뒤집힌 모습";
+                    sizeText = opticsObjX > 2*f ? "실물보다 작음 (축소)" : (Math.abs(opticsObjX - 2*f) < 5 ? "실물과 같음" : "실물보다 큼 (확대)");
+                    typeText = "거꾸로 선 실상 (화면에 맺힘)";
+                    usageText = "빔 프로젝터, 눈의 망막 구조, 스마트폰 카메라 렌즈 등에 널리 응용됩니다.";
+                    descText = `<b>볼록렌즈 (초점 바깥):</b> 뒤집힌 상(도립 실상)이 생깁니다. ${opticsObjX > 2*f ? '카메라 센서나 눈 망막처럼 실제보다 축소된 실상입니다.' : '더 확대된 실상입니다.'}`;
+                }
+            } else if (opticsCurrentDevice === 'concave-lens') {
+                objPosText = "렌즈 앞 어디에나"; orientText = "똑바로 선 모습"; sizeText = "실물보다 항상 작아 보임"; typeText = "똑바로 선 허상";
+                usageText = "근시 환자용 안경(시력 교정), 현관문 도어뷰어 엿보기 구멍 등에 쓰입니다.";
+                descText = "<b>오목렌즈:</b> 거리에 상관없이 물체가 항상 작고 바로 선 상(정립 허상)으로 보여 시력을 교정해 줍니다.";
+            }
+
+            document.getElementById('info-object-pos').innerText = objPosText;
+            document.getElementById('info-image-orient').innerText = orientText;
+            document.getElementById('info-image-size').innerText = sizeText;
+            document.getElementById('info-image-type').innerText = typeText;
+            document.getElementById('info-usage').innerText = usageText;
+            document.getElementById('front-desc').innerHTML = descText;
+        }
+
+        // 거울 렌즈 드래그 인식
+        function getOpticsMousePos(evt) {
+            const rect = opticsCanvas.getBoundingClientRect();
+            let clientX = evt.clientX, clientY = evt.clientY;
+            if (evt.touches && evt.touches.length > 0) {
+                clientX = evt.touches[0].clientX;
+                clientY = evt.touches[0].clientY;
+            }
+            return { x: clientX - rect.left, y: clientY - rect.top };
+        }
+
+        function onOpticsMouseDown(evt) {
+            const pos = getOpticsMousePos(evt);
+            const w = opticsCanvas.width / (window.devicePixelRatio || 1);
+            const h = opticsCanvas.height / (window.devicePixelRatio || 1);
+            const cx = w / 2; const cy = h / 2;
+
+            const physicalObjX = cx - opticsObjX;
+            const physicalObjY = cy - opticsObjH;
+
+            const dist = Math.sqrt((pos.x - physicalObjX)**2 + (pos.y - physicalObjY)**2);
+            if (dist < 35) {
+                isOpticsDragging = true;
+            }
+        }
+
+        function onOpticsMouseMove(evt) {
+            if (!isOpticsDragging) return;
+            evt.preventDefault();
+            const pos = getOpticsMousePos(evt);
+            const w = opticsCanvas.width / (window.devicePixelRatio || 1);
+            const h = opticsCanvas.height / (window.devicePixelRatio || 1);
+            const cx = w / 2; const cy = h / 2;
+
+            let newX = cx - pos.x;
+            newX = Math.max(10, Math.min(cx - 20, newX));
+            let newH = cy - pos.y;
+            newH = Math.max(10, Math.min(140, newH));
+
+            opticsObjX = Math.round(newX);
+            opticsObjH = Math.round(newH);
+
+            updateOpticsUI();
+            renderOptics();
+        }
+
+        function onOpticsMouseUp() {
+            isOpticsDragging = false;
+        }
+
+        function onOpticsTouchStart(evt) {
+            onOpticsMouseDown(evt);
+            if (isOpticsDragging) evt.preventDefault();
+        }
+        function onOpticsTouchMove(evt) {
+            onOpticsMouseMove(evt);
+        }
+
+        // [거울/렌즈 측면 뷰 실시간 그리기]
+        function renderOptics() {
+            const w = opticsCanvas.width / (window.devicePixelRatio || 1);
+            const h = opticsCanvas.height / (window.devicePixelRatio || 1);
+            opticsCtx.clearRect(0, 0, w, h);
+
+            // 어두운 격자 벽면 배경
+            opticsCtx.fillStyle = '#0f172a';
+            opticsCtx.fillRect(0, 0, w, h);
+
+            opticsCtx.strokeStyle = '#1e293b';
+            opticsCtx.lineWidth = 1;
+            for(let i = 0; i < h; i += 30) {
+                opticsCtx.beginPath(); opticsCtx.moveTo(0, i); opticsCtx.lineTo(w, i); opticsCtx.stroke();
+            }
+            for(let i = 0; i < w; i += 30) {
+                opticsCtx.beginPath(); opticsCtx.moveTo(i, 0); opticsCtx.lineTo(i, h); opticsCtx.stroke();
+            }
+
+            const cx = w / 2; const cy = h / 2;
+
+            // 광축 그리기
+            opticsCtx.strokeStyle = '#475569';
+            opticsCtx.lineWidth = 2;
+            opticsCtx.beginPath(); opticsCtx.moveTo(0, cy); opticsCtx.lineTo(w, cy); opticsCtx.stroke();
+
+            // 렌즈/거울 바디 그리기 (세로 크기 조절 반영)
+            drawOpticsBody(cx, cy, h);
+
+            // 물체 그리기
+            drawCandle(opticsCtx, cx - opticsObjX, cy, opticsObjH, "물체", '#38bdf8');
+
+            // 초점 그리기
+            if (opticsCurrentDevice !== 'plane-mirror') {
+                const f = opticsFocalLength;
+                if (opticsCurrentDevice.includes('mirror')) {
+                    const fx = (opticsCurrentDevice === 'concave-mirror') ? cx - f : cx + f;
+                    drawOpticsPoint(fx, cy, "F", '#3b82f6');
+                } else {
+                    drawOpticsPoint(cx - f, cy, "F1", '#3b82f6');
+                    drawOpticsPoint(cx + f, cy, "F2", '#3b82f6');
+                }
+            }
+
+            // 광선 추적 드로잉 및 상 맺힘 계산
+            calculateOpticsRays(cx, cy, w, h);
+
+            // 관찰자 3D 정면 뷰 동조 그리기
+            renderFrontView();
+        }
+
+        function drawOpticsPoint(x, y, label, color) {
+            opticsCtx.beginPath();
+            opticsCtx.arc(x, y, 5, 0, 2*Math.PI);
+            opticsCtx.fillStyle = color;
+            opticsCtx.fill();
+            opticsCtx.strokeStyle = '#ffffff';
+            opticsCtx.lineWidth = 1;
+            opticsCtx.stroke();
+
+            opticsCtx.fillStyle = '#94a3b8';
+            opticsCtx.font = 'bold 9px sans-serif';
+            opticsCtx.textAlign = 'center';
+            opticsCtx.fillText(label, x, y + 15);
+        }
+
+        // 거울/렌즈 본체 형상 그리기
+        function drawOpticsBody(cx, cy, totalH) {
+            const halfSize = opticsDeviceSize / 2;
+            
+            // 중앙 수직 기준 보조선
+            opticsCtx.strokeStyle = 'rgba(255,255,255,0.06)';
+            opticsCtx.lineWidth = 1;
+            opticsCtx.beginPath(); opticsCtx.moveTo(cx, 10); opticsCtx.lineTo(cx, totalH - 10); opticsCtx.stroke();
+
+            opticsCtx.lineWidth = 6;
+            if (opticsCurrentDevice === 'plane-mirror') {
+                opticsCtx.strokeStyle = '#cbd5e1';
+                opticsCtx.beginPath();
+                opticsCtx.moveTo(cx, cy - halfSize);
+                opticsCtx.lineTo(cx, cy + halfSize);
+                opticsCtx.stroke();
+
+                opticsCtx.strokeStyle = '#475569';
+                opticsCtx.lineWidth = 1.5;
+                for (let y = cy - halfSize + 10; y <= cy + halfSize - 10; y += 10) {
+                    opticsCtx.beginPath(); opticsCtx.moveTo(cx, y); opticsCtx.lineTo(cx + 8, y + 8); opticsCtx.stroke();
+                }
+            } else if (opticsCurrentDevice === 'concave-mirror') {
+                opticsCtx.strokeStyle = '#93c5fd';
+                opticsCtx.beginPath();
+                // 굽어짐 정도를 구경에 맞춰 보정 계산
+                const angleSpan = Math.min(0.8, halfSize / 240);
+                opticsCtx.arc(cx + 140, cy, 150, Math.PI - angleSpan, Math.PI + angleSpan);
+                opticsCtx.stroke();
+
+                opticsCtx.strokeStyle = '#475569';
+                opticsCtx.lineWidth = 1.5;
+                for (let a = -angleSpan + 0.05; a <= angleSpan - 0.05; a += 0.08) {
+                    let rx = cx + 140 + 150 * Math.cos(Math.PI + a);
+                    let ry = cy + 150 * Math.sin(Math.PI + a);
+                    opticsCtx.beginPath(); opticsCtx.moveTo(rx, ry); opticsCtx.lineTo(rx + 8, ry + 4); opticsCtx.stroke();
+                }
+            } else if (opticsCurrentDevice === 'convex-mirror') {
+                opticsCtx.strokeStyle = '#93c5fd';
+                opticsCtx.beginPath();
+                const angleSpan = Math.min(0.8, halfSize / 240);
+                opticsCtx.arc(cx - 140, cy, 150, -angleSpan, angleSpan);
+                opticsCtx.stroke();
+
+                opticsCtx.strokeStyle = '#475569';
+                opticsCtx.lineWidth = 1.5;
+                for (let a = -angleSpan + 0.05; a <= angleSpan - 0.05; a += 0.08) {
+                    let rx = cx - 140 + 150 * Math.cos(a);
+                    let ry = cy + 150 * Math.sin(a);
+                    opticsCtx.beginPath(); opticsCtx.moveTo(rx, ry); opticsCtx.lineTo(rx - 8, ry + 4); opticsCtx.stroke();
+                }
+            } else if (opticsCurrentDevice === 'convex-lens') {
+                opticsCtx.strokeStyle = '#38bdf8';
+                opticsCtx.fillStyle = 'rgba(56, 189, 248, 0.12)';
+                opticsCtx.beginPath();
+                const spanAngle = Math.min(0.9, halfSize / 150);
+                opticsCtx.arc(cx - 100, cy, 120, -spanAngle, spanAngle);
+                opticsCtx.arc(cx + 100, cy, 120, Math.PI - spanAngle, Math.PI + spanAngle);
+                opticsCtx.closePath();
+                opticsCtx.fill();
+                opticsCtx.stroke();
+            } else if (opticsCurrentDevice === 'concave-lens') {
+                opticsCtx.strokeStyle = '#38bdf8';
+                opticsCtx.fillStyle = 'rgba(56, 189, 248, 0.12)';
+                opticsCtx.beginPath();
+                opticsCtx.moveTo(cx - 15, cy - halfSize);
+                opticsCtx.quadraticCurveTo(cx - 3, cy, cx - 15, cy + halfSize);
+                opticsCtx.lineTo(cx + 15, cy + halfSize);
+                opticsCtx.quadraticCurveTo(cx + 3, cy, cx + 15, cy - halfSize);
+                opticsCtx.closePath();
+                opticsCtx.fill();
+                opticsCtx.stroke();
+            }
+        }
+
+        // 공통 촛불 드로잉 함수 (복원됨)
+        function drawCandle(cCtx, x, groundY, height, label, color, isDashed = false) {
+            cCtx.save();
+            if (isDashed) {
+                cCtx.setLineDash([4, 4]);
+                cCtx.globalAlpha = 0.65;
+            }
+
+            const scale = Math.max(0.001, Math.abs(height) / 60);
+            const absH = Math.abs(height);
+
+            cCtx.lineWidth = Math.max(2, 3 * scale);
+            cCtx.strokeStyle = color;
+            cCtx.fillStyle = color;
+
+            // 받침
+            cCtx.beginPath(); cCtx.moveTo(x - 10 * scale, groundY); cCtx.lineTo(x + 10 * scale, groundY); cCtx.stroke();
+            // 몸통
+            cCtx.beginPath(); cCtx.moveTo(x, groundY); cCtx.lineTo(x, groundY - height * 0.7); cCtx.stroke();
+            // 컵
+            cCtx.beginPath(); cCtx.moveTo(x - 6 * scale, groundY - height * 0.7); cCtx.lineTo(x + 6 * scale, groundY - height * 0.7); cCtx.stroke();
+            // 심지
+            cCtx.beginPath(); cCtx.moveTo(x, groundY - height * 0.7); cCtx.lineTo(x, groundY - height * 0.82); cCtx.stroke();
+
+            // 불꽃
+            if (absH > 5) {
+                cCtx.fillStyle = '#f97316';
+                cCtx.beginPath();
+                let tipY = groundY - height; let bottomY = groundY - height * 0.82; let midY = groundY - height * 0.91; let rW = 5 * scale;
+                cCtx.moveTo(x, tipY);
+                cCtx.bezierCurveTo(x - rW, midY, x - rW, bottomY, x, bottomY);
+                cCtx.bezierCurveTo(x + rW, bottomY, x + rW, midY, x, tipY);
+                cCtx.fill();
+
+                cCtx.fillStyle = '#fbbf24';
+                cCtx.beginPath();
+                let iTipY = groundY - height * 0.96; let iBottomY = groundY - height * 0.84; let iMidY = groundY - height * 0.90; let iW = 2.5 * scale;
+                cCtx.moveTo(x, iTipY);
+                cCtx.bezierCurveTo(x - iW, iMidY, x - iW, iBottomY, x, iBottomY);
+                cCtx.bezierCurveTo(x + iW, iBottomY, x + iW, iMidY, x, iTipY);
+                cCtx.fill();
+            }
+
+            cCtx.fillStyle = '#cbd5e1';
+            cCtx.font = '10px sans-serif';
+            cCtx.textAlign = 'center';
+            let tY = height >= 0 ? groundY + 12 : groundY - 12;
+            cCtx.fillText(label, x, tY);
+            cCtx.restore();
+        }
+
+        // 광선 경로 추적 알고리즘 (복원됨)
+        function calculateOpticsRays(cx, cy, w, h) {
+            const do_val = opticsObjX; const ho_val = opticsObjH; const f = opticsFocalLength;
+            const oX = cx - do_val; const oY = cy - ho_val;
+
+            if (opticsCurrentDevice === 'plane-mirror') {
+                const iX = cx + do_val; const iY = cy - ho_val;
+                drawCandle(opticsCtx, iX, cy, ho_val, "상", '#f43f5e', true);
+
+                drawOpticsRay(oX, oY, cx, oY, '#fbbf24');
+                drawOpticsRay(cx, oY, 0, oY, '#fbbf24');
+                drawOpticsVirtualRay(cx, oY, iX, iY, '#f43f5e');
+
+                drawOpticsRay(oX, oY, cx, cy, '#fbbf24');
+                const refSlope = (cy - oY) / (cx - oX);
+                drawOpticsRay(cx, cy, 0, cy + refSlope * (0 - cx), '#fbbf24');
+                drawOpticsVirtualRay(cx, cy, iX, iY, '#f43f5e');
+
+            } else if (opticsCurrentDevice === 'concave-mirror') {
+                let di, hi; const diff = do_val - f;
+                if (Math.abs(diff) < 2) {
+                    drawOpticsRay(oX, oY, cx, oY, '#fbbf24');
+                    drawOpticsRay(cx, oY, cx - f, cy, '#fbbf24');
+                    drawOpticsRay(oX, oY, cx, cy, '#fbbf24');
+                    return;
+                }
+                di = (f * do_val) / diff;
+                hi = - (di / do_val) * ho_val;
+                const iX = cx - di; const iY = cy - hi;
+                const isReal = di > 0;
+
+                drawCandle(opticsCtx, iX, cy, hi, "상", '#f43f5e', !isReal);
+
+                drawOpticsRay(oX, oY, cx, oY, '#fbbf24');
+                if (isReal) {
+                    drawOpticsRay(cx, oY, cx - f, cy, '#fbbf24');
+                    drawOpticsRay(cx - f, cy, iX, iY, '#fbbf24');
+                    drawOpticsRay(iX, iY, 0, iY + (iY - cy) / (iX - (cx - f)) * (0 - iX), '#fbbf24');
+                } else {
+                    drawOpticsRay(cx, oY, cx - f*2, oY + (cy - oY)*2, '#fbbf24');
+                    drawOpticsVirtualRay(cx, oY, iX, iY, '#f43f5e');
+                }
+
+                drawOpticsRay(oX, oY, cx, cy, '#fbbf24');
+                if (isReal) {
+                    drawOpticsRay(cx, cy, iX, iY, '#fbbf24');
+                    drawOpticsRay(iX, iY, 0, cy + (iY - cy) / (iX - cx) * (0 - cx), '#fbbf24');
+                } else {
+                    const refSlope = (cy - oY) / (cx - oX);
+                    drawOpticsRay(cx, cy, 0, cy + refSlope * (0 - cx), '#fbbf24');
+                    drawOpticsVirtualRay(cx, cy, iX, iY, '#f43f5e');
+                }
+
+            } else if (opticsCurrentDevice === 'convex-mirror') {
+                const vF = -f;
+                const di = (vF * do_val) / (do_val - vF);
+                const hi = - (di / do_val) * ho_val;
+                const iX = cx - di; const iY = cy - hi;
+
+                drawCandle(opticsCtx, iX, cy, hi, "상", '#f43f5e', true);
+
+                drawOpticsRay(oX, oY, cx, oY, '#fbbf24');
+                const vFX = cx + f; const slope = (oY - cy) / (cx - vFX);
+                drawOpticsRay(cx, oY, 0, oY + slope * (0 - cx), '#fbbf24');
+                drawOpticsVirtualRay(cx, oY, iX, iY, '#f43f5e');
+                drawOpticsVirtualRay(iX, iY, vFX, cy, '#f43f5e');
+
+                drawOpticsRay(oX, oY, cx, cy, '#fbbf24');
+                const refSlope = (cy - oY) / (cx - oX);
+                drawOpticsRay(cx, cy, 0, cy + refSlope * (0 - cx), '#fbbf24');
+                drawOpticsVirtualRay(cx, cy, iX, iY, '#f43f5e');
+
+            } else if (opticsCurrentDevice === 'convex-lens') {
+                let di, hi; const diff = do_val - f;
+                if (Math.abs(diff) < 2) {
+                    drawOpticsRay(oX, oY, cx, oY, '#fbbf24');
+                    drawOpticsRay(cx, oY, cx + f, cy, '#fbbf24');
+                    drawOpticsRay(oX, oY, cx, cy, '#fbbf24');
+                    return;
+                }
+                di = (f * do_val) / diff;
+                hi = - (di / do_val) * ho_val;
+                const iX = cx + di; const iY = cy - hi;
+                const isReal = di > 0;
+
+                drawCandle(opticsCtx, iX, cy, hi, "상", '#f43f5e', !isReal);
+
+                drawOpticsRay(oX, oY, cx, oY, '#fbbf24');
+                if (isReal) {
+                    drawOpticsRay(cx, oY, cx + f, cy, '#fbbf24');
+                    drawOpticsRay(cx + f, cy, iX, iY, '#fbbf24');
+                    drawOpticsRay(iX, iY, w, iY + (iY - cy) / (iX - (cx + f)) * (w - iX), '#fbbf24');
+                } else {
+                    drawOpticsRay(cx, oY, w, cy + (cy - oY) / (cx + f - cx) * (w - (cx + f)), '#fbbf24');
+                    drawOpticsVirtualRay(cx, oY, iX, iY, '#f43f5e');
+                }
+
+                if (isReal) {
+                    drawOpticsRay(oX, oY, cx, cy, '#fbbf24');
+                    drawOpticsRay(cx, cy, iX, iY, '#fbbf24');
+                    drawOpticsRay(iX, iY, w, cy + (iY - cy) / (iX - cx) * (w - cx), '#fbbf24');
+                } else {
+                    drawOpticsRay(oX, oY, cx, cy, '#fbbf24');
+                    drawOpticsRay(cx, cy, w, cy + (cy - oY) / (cx - oX) * (w - cx), '#fbbf24');
+                    drawOpticsVirtualRay(cx, cy, iX, iY, '#f43f5e');
+                }
+
+            } else if (opticsCurrentDevice === 'concave-lens') {
+                const vF = -f;
+                const di = (vF * do_val) / (do_val - vF);
+                const hi = - (di / do_val) * ho_val;
+                const iX = cx + di; const iY = cy - hi;
+
+                drawCandle(opticsCtx, iX, cy, hi, "상", '#f43f5e', true);
+
+                drawOpticsRay(oX, oY, cx, oY, '#fbbf24');
+                const vFX = cx - f; const slope = (oY - cy) / (cx - vFX);
+                drawOpticsRay(cx, oY, w, oY + slope * (w - cx), '#fbbf24');
+                drawOpticsVirtualRay(cx, oY, iX, iY, '#f43f5e');
+                drawOpticsVirtualRay(iX, iY, vFX, cy, '#f43f5e');
+
+                drawOpticsRay(oX, oY, cx, cy, '#fbbf24');
+                drawOpticsRay(cx, cy, w, cy + (cy - oY) / (cx - oX) * (w - cx), '#fbbf24');
+                drawOpticsVirtualRay(cx, cy, iX, iY, '#f43f5e');
+            }
+        }
+
+        // 실선 광선 작도 함수 (복원됨)
+        function drawOpticsRay(x1, y1, x2, y2, color) {
+            opticsCtx.beginPath(); opticsCtx.moveTo(x1, y1); opticsCtx.lineTo(x2, y2);
+            opticsCtx.strokeStyle = color; opticsCtx.lineWidth = 2.5; opticsCtx.stroke();
+        }
+
+        // 점선 가상 광선 작도 함수 (복원됨)
+        function drawOpticsVirtualRay(x1, y1, x2, y2, color) {
+            opticsCtx.save(); opticsCtx.beginPath(); opticsCtx.moveTo(x1, y1); opticsCtx.lineTo(x2, y2);
+            opticsCtx.strokeStyle = color; opticsCtx.lineWidth = 1.5; opticsCtx.setLineDash([4, 4]); opticsCtx.stroke();
+            opticsCtx.restore();
+        }
+
+        // [정면 시뮬레이터 원형 관찰실 3D 프레임 드로잉]
+        function renderFrontView() {
+            const w = frontCanvas.width / (window.devicePixelRatio || 1);
+            const h = frontCanvas.height / (window.devicePixelRatio || 1);
+            frontCtx.clearRect(0, 0, w, h);
+
+            // 어두운 실험실
+            frontCtx.fillStyle = '#05070e';
+            frontCtx.fillRect(0, 0, w, h);
+
+            const bg = frontCtx.createRadialGradient(w/2, h/2, 20, w/2, h/2, Math.max(20, w));
+            bg.addColorStop(0, '#100f2e'); bg.addColorStop(1, '#05070e');
+            frontCtx.fillStyle = bg;
+            frontCtx.fillRect(0, 0, w, h);
+
+            const cx = w / 2; const cy = h / 2 - 10;
+            // 디바이스 크기 슬라이더와 연계하여 3D 정면 베젤(경통)의 지름을 설정!
+            const r = Math.max(10, (opticsDeviceSize / 2) * (Math.min(w, h) / 280) * 1.1);
+
+            // 광학 지탱 레일
+            frontCtx.strokeStyle = '#1e293b'; frontCtx.lineWidth = 6;
+            frontCtx.beginPath(); frontCtx.moveTo(0, cy + r + 5); frontCtx.lineTo(w, cy + r + 5); frontCtx.stroke();
+
+            // 레일 스탠드 블록
+            frontCtx.fillStyle = '#0f172a'; frontCtx.fillRect(cx - 15, cy + r - 10, 30, 20);
+
+            // 클리핑 가상 마스크 설정 (경통 내부만 관찰 가능하도록!)
+            frontCtx.save();
+            frontCtx.beginPath(); frontCtx.arc(cx, cy, r, 0, Math.PI * 2); frontCtx.clip();
+
+            // 내부 가상 그리드
+            frontCtx.strokeStyle = 'rgba(255, 255, 255, 0.03)'; frontCtx.lineWidth = 1;
+            for (let i = -r; i <= r; i += 20) {
+                frontCtx.beginPath(); frontCtx.moveTo(cx + i, cy - r); frontCtx.lineTo(cx + i, cy + r); frontCtx.stroke();
+                frontCtx.beginPath(); frontCtx.moveTo(cx - r, cy + i); frontCtx.lineTo(cx + r, cy + i); frontCtx.stroke();
+            }
+
+            // 유리 반사광 및 표면 텍스쳐 채우기
+            if (opticsCurrentDevice.includes('mirror')) {
+                const mirrorGrad = frontCtx.createLinearGradient(cx - r, cy - r, cx + r, cy + r);
+                mirrorGrad.addColorStop(0, 'rgba(148, 163, 184, 0.25)');
+                mirrorGrad.addColorStop(0.5, 'rgba(203, 213, 225, 0.1)');
+                mirrorGrad.addColorStop(1, 'rgba(71, 85, 105, 0.35)');
+                frontCtx.fillStyle = mirrorGrad; frontCtx.fillRect(cx - r, cy - r, r*2, r*2);
+            } else {
+                const glassGrad = frontCtx.createRadialGradient(cx - r*0.2, cy - r*0.2, 10, cx, cy, r);
+                glassGrad.addColorStop(0, 'rgba(56, 189, 248, 0.15)');
+                glassGrad.addColorStop(1, 'rgba(14, 165, 233, 0.35)');
+                frontCtx.fillStyle = glassGrad; frontCtx.fillRect(cx - r, cy - r, r*2, r*2);
+            }
+
+            // 배율 계산
+            let M = 1.0; let isUpright = true; let blurAmt = 0;
+            const f = opticsFocalLength; const do_val = opticsObjX; const ho_val = opticsObjH;
+
+            if (opticsCurrentDevice === 'plane-mirror') {
+                M = 1.0; isUpright = true;
+            } else if (opticsCurrentDevice === 'concave-mirror' || opticsCurrentDevice === 'convex-lens') {
+                const diff = do_val - f;
+                if (Math.abs(diff) < 3) {
+                    M = 0; blurAmt = 25;
+                } else {
+                    M = Math.abs(f / diff);
+                    isUpright = (do_val < f);
+                    if (Math.abs(diff) < 20) blurAmt = (20 - Math.abs(diff)) * 1.2;
+                }
+            } else {
+                // 볼록거울 및 오목렌즈
+                M = f / (do_val + f); isUpright = true;
+            }
+
+            if (M > 4.5) M = 4.5;
+            const renderH = ho_val * M;
+
+            // 촛불 정면 디테일 렌더링
+            if (M > 0.05 || blurAmt > 0) {
+                const drawH = isUpright ? renderH : -renderH;
+                drawFrontCandleDetail(frontCtx, cx, cy + (isUpright ? renderH*0.1 : -renderH*0.1), drawH, blurAmt);
+            }
+
+            frontCtx.restore(); // 마스크 끝
+
+            // 경통 베젤 마감 테두리
+            frontCtx.save();
+            frontCtx.beginPath(); frontCtx.arc(cx, cy, r, 0, Math.PI * 2);
+            if (opticsCurrentDevice.includes('mirror')) {
+                const rim = frontCtx.createLinearGradient(cx - r, cy - r, cx + r, cy + r);
+                rim.addColorStop(0, '#94a3b8'); rim.addColorStop(0.5, '#475569'); rim.addColorStop(1, '#1e293b');
+                frontCtx.strokeStyle = rim; frontCtx.lineWidth = 8;
+            } else {
+                frontCtx.strokeStyle = '#334155'; frontCtx.lineWidth = 10;
+            }
+            frontCtx.stroke();
+
+            // 유리 광택 하이라이팅 원호 장식 (예외방지 필수)
+            const highlightRad = Math.max(0.1, r - 3);
+            frontCtx.beginPath(); frontCtx.arc(cx, cy, highlightRad, -Math.PI/4, Math.PI/4);
+            frontCtx.strokeStyle = 'rgba(255,255,255,0.3)'; frontCtx.lineWidth = 2; frontCtx.stroke();
+
+            // 결과 안내 오버레이 문틀
+            let label = ""; let labelColor = "";
+            if (opticsCurrentDevice === 'plane-mirror') { label = "정립 허상 (1:1)"; labelColor = "#10b981"; }
+            else if (opticsCurrentDevice === 'concave-mirror' || opticsCurrentDevice === 'convex-lens') {
+                if (do_val < f) { label = "정립 허상 (확대)"; labelColor = "#3b82f6"; }
+                else if (Math.abs(do_val - f) < 3) { label = "상 없음"; labelColor = "#f59e0b"; }
+                else { label = `도립 실상 (${M > 1.05 ? '확대' : (M < 0.95 ? '축소' : '1:1')})`; labelColor = "#ef4444"; }
+            } else { label = "정립 허상 (축소)"; labelColor = "#8b5cf6"; }
+
+            frontCtx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+            frontCtx.beginPath(); frontCtx.roundRect(cx - 75, cy - r - 35, 150, 24, 6); frontCtx.fill();
+
+            frontCtx.fillStyle = labelColor; frontCtx.font = 'bold 11px sans-serif'; frontCtx.textAlign = 'center';
+            frontCtx.fillText(label, cx, cy - r - 19);
+
+            frontCtx.restore();
+        }
+
+        // 정면 촛불 상세 묘사 함수
+        function drawFrontCandleDetail(fCtx, x, y, renderH, blurAmt = 0) {
+            fCtx.save();
+            if (blurAmt > 0) fCtx.filter = `blur(${blurAmt}px)`;
+
+            const scale = Math.max(0.001, Math.abs(renderH) / 60);
+            const dir = renderH >= 0 ? 1 : -1;
+            const absH = Math.abs(renderH);
+            const w = 18 * scale;
+            const bodyH = absH * 0.7; const topY = y - dir * bodyH;
+
+            // 받침
+            fCtx.fillStyle = '#475569'; fCtx.strokeStyle = '#1e293b'; fCtx.lineWidth = 1 * scale;
+            fCtx.beginPath(); fCtx.ellipse(x, y, 14 * scale, 4 * scale, 0, 0, Math.PI * 2); fCtx.fill(); fCtx.stroke();
+
+            // 파라핀 기둥
+            const grad = fCtx.createLinearGradient(x - w/2, 0, x + w/2, 0);
+            grad.addColorStop(0, '#0284c7'); grad.addColorStop(0.5, '#38bdf8'); grad.addColorStop(1, '#0284c7');
+            fCtx.fillStyle = grad;
+            fCtx.beginPath();
+            if (dir === 1) fCtx.rect(x - w / 2, y - bodyH, w, bodyH);
+            else fCtx.rect(x - w / 2, y, w, bodyH);
+            fCtx.fill();
+
+            // 머리 타원형
+            fCtx.fillStyle = '#0ea5e9';
+            fCtx.beginPath(); fCtx.ellipse(x, topY, w/2, Math.max(0.1, 3 * scale), 0, 0, Math.PI * 2); fCtx.fill();
+
+            // 심지
+            fCtx.strokeStyle = '#e2e8f0'; fCtx.lineWidth = 1.5 * scale;
+            fCtx.beginPath(); fCtx.moveTo(x, topY); fCtx.lineTo(x, topY - dir * (8 * scale)); fCtx.stroke();
+
+            // 심지 불꽃
+            if (absH > 5) {
+                const flameH = absH * 0.3; const flameY = topY - dir * (8 * scale);
+                const outGrad = fCtx.createRadialGradient(x, flameY - dir * (flameH * 0.3), 1, x, flameY - dir * (flameH * 0.3), Math.max(1, flameH));
+                outGrad.addColorStop(0, '#ef4444'); outGrad.addColorStop(0.2, '#f97316'); outGrad.addColorStop(1, 'rgba(239, 68, 68, 0)');
+                fCtx.fillStyle = outGrad;
+                fCtx.beginPath(); fCtx.arc(x, flameY - dir * (flameH * 0.3), Math.max(0.1, flameH), 0, Math.PI * 2); fCtx.fill();
+
+                fCtx.fillStyle = '#fbbf24';
+                fCtx.beginPath(); fCtx.ellipse(x, flameY - dir * (flameH * 0.3), Math.max(0.1, 5 * scale), Math.max(0.1, flameH * 0.6), 0, 0, Math.PI * 2); fCtx.fill();
+            }
+            fCtx.restore();
+        }
+
+
+        // ====================================================================
+        // --- [PART 2. 빛의 삼원색 합성 시뮬레이션 물리 연산 및 그림] ---
+        // ====================================================================
+
+        // [추가] 빛의 세기를 실시간 수학적으로 역추적 연산하는 헬퍼 함수 (CORS 및 드래그 겹침, 고DPI 오류 완전 해결)
+        function getIncomingRGB(x, y) {
+            let r = 0, g = 0, b = 0;
+
+            // 1. 빨간색 조명 값 연산
+            const dR = Math.sqrt((x - lights.red.x)**2 + (y - lights.red.y)**2);
+            if (dR < lights.red.radius && lights.red.intensity > 0) {
+                const ratio = dR / lights.red.radius;
+                let val = 0;
+                if (ratio < 0.35) val = 1.0;
+                else if (ratio < 0.65) val = 1.0 - (ratio - 0.35) / 0.30 * 0.3;
+                else if (ratio < 0.88) val = 0.7 - (ratio - 0.65) / 0.23 * 0.4;
+                else val = 0.3 - (ratio - 0.88) / 0.12 * 0.3;
+                r = val * lights.red.intensity * 255;
+            }
+
+            // 2. 초록색 조명 값 연산
+            const dG = Math.sqrt((x - lights.green.x)**2 + (y - lights.green.y)**2);
+            if (dG < lights.green.radius && lights.green.intensity > 0) {
+                const ratio = dG / lights.green.radius;
+                let val = 0;
+                if (ratio < 0.35) val = 1.0;
+                else if (ratio < 0.65) val = 1.0 - (ratio - 0.35) / 0.30 * 0.3;
+                else if (ratio < 0.88) val = 0.7 - (ratio - 0.65) / 0.23 * 0.4;
+                else val = 0.3 - (ratio - 0.88) / 0.12 * 0.3;
+                g = val * lights.green.intensity * 255;
+            }
+
+            // 3. 파란색 조명 값 연산
+            const dB = Math.sqrt((x - lights.blue.x)**2 + (y - lights.blue.y)**2);
+            if (dB < lights.blue.radius && lights.blue.intensity > 0) {
+                const ratio = dB / lights.blue.radius;
+                let val = 0;
+                if (ratio < 0.35) val = 1.0;
+                else if (ratio < 0.65) val = 1.0 - (ratio - 0.35) / 0.30 * 0.3;
+                else if (ratio < 0.88) val = 0.7 - (ratio - 0.65) / 0.23 * 0.4;
+                else val = 0.3 - (ratio - 0.88) / 0.12 * 0.3;
+                b = val * lights.blue.intensity * 255;
+            }
+
+            return { r, g, b };
+        }
+
+        function resetColors() {
+            const w = stageCanvas.width / (window.devicePixelRatio || 1);
+            const h = stageCanvas.height / (window.devicePixelRatio || 1);
+            const cx = w / 2; const cy = h / 2 - 20;
+
+            lights.red.x = cx; lights.red.y = cy - 45;
+            lights.green.x = cx - 60; lights.green.y = cy + 45;
+            lights.blue.x = cx + 60; lights.blue.y = cy + 45;
+
+            Object.keys(lights).forEach(k => {
+                lights[k].radius = 120; lights[k].intensity = 1.0;
+            });
+
+            document.getElementById('slide-r-int').value = 100;
+            document.getElementById('slide-g-int').value = 100;
+            document.getElementById('slide-b-int').value = 100;
+            document.getElementById('slide-r-rad').value = 120;
+            document.getElementById('slide-g-rad').value = 120;
+            document.getElementById('slide-b-rad').value = 120;
+
+            sensor.x = cx; sensor.y = cy + 10;
+
+            // 물체 배치
+            sceneObjects[0].x = cx - 110; sceneObjects[0].y = cy + 110;
+            sceneObjects[1].x = cx - 35;  sceneObjects[1].y = cy + 110;
+            sceneObjects[2].x = cx + 35;  sceneObjects[2].y = cy + 110;
+            sceneObjects[3].x = cx + 110; sceneObjects[3].y = cy + 110;
+
+            updateColorUI();
+            renderColorStage();
+        }
+
+        function changeColorSubTab(tabName) {
+            colorSubTab = tabName;
+
+            document.getElementById('tab-color-blend').className = "px-3 py-1 text-slate-400 text-xs font-bold transition-all hover:text-white";
+            document.getElementById('tab-color-object').className = "px-3 py-1 text-slate-400 text-xs font-bold transition-all hover:text-white";
+
+            const activeBtn = document.getElementById(`tab-color-${tabName}`);
+            if (activeBtn) activeBtn.className = "px-3 py-1 rounded bg-indigo-600 text-white text-xs font-bold transition-all";
+
+            // 설명상자 보정
+            document.getElementById('desc-blend').classList.add('hidden');
+            document.getElementById('desc-object').classList.add('hidden');
+            document.getElementById(`desc-${tabName}`).classList.remove('hidden');
+
+            const tooltip = document.getElementById('tooltip-text');
+            if (tabName === 'blend') {
+                document.getElementById('color-title').innerText = "실시간 광원 합성 스크린";
+                tooltip.innerHTML = "<b>R, G, B 조명 핸들</b>과 <b>🎯빛 감지 센서</b>를 마우스나 터치로 원하는 방향에 끌어다 놓으세요!";
+            } else {
+                document.getElementById('color-title').innerText = "물체의 색 관찰 실험실";
+                tooltip.innerHTML = "조명 원판을 <b>🍎, 🍌, 🍃, 🧢 물체들 위에 겹치도록</b> 끌어놓아 빛에 따른 변화를 관찰해 보세요!";
+            }
+
+            renderColorStage();
+        }
+
+        function onColorSliderChange() {
+            lights.red.intensity = parseInt(document.getElementById('slide-r-int').value) / 100;
+            lights.green.intensity = parseInt(document.getElementById('slide-g-int').value) / 100;
+            lights.blue.intensity = parseInt(document.getElementById('slide-b-int').value) / 100;
+
+            lights.red.radius = parseInt(document.getElementById('slide-r-rad').value);
+            lights.green.radius = parseInt(document.getElementById('slide-g-rad').value);
+            lights.blue.radius = parseInt(document.getElementById('slide-b-rad').value);
+
+            updateColorUI();
+            renderColorStage();
+        }
+
+        function updateColorUI() {
+            document.getElementById('val-r').innerText = `${Math.round(lights.red.intensity * 100)}%`;
+            document.getElementById('val-g').innerText = `${Math.round(lights.green.intensity * 100)}%`;
+            document.getElementById('val-b').innerText = `${Math.round(lights.blue.intensity * 100)}%`;
+
+            document.getElementById('val-r-rad').innerText = `${lights.red.radius}px`;
+            document.getElementById('val-g-rad').innerText = `${lights.green.radius}px`;
+            document.getElementById('val-b-rad').innerText = `${lights.blue.radius}px`;
+        }
+
+        // 삼원색 드래그 인식
+        function getColorMousePos(evt) {
+            const rect = stageCanvas.getBoundingClientRect();
+            let clientX = evt.clientX, clientY = evt.clientY;
+            if (evt.touches && evt.touches.length > 0) {
+                clientX = evt.touches[0].clientX;
+                clientY = evt.touches[0].clientY;
+            }
+            return { x: clientX - rect.left, y: clientY - rect.top };
+        }
+
+        function onColorMouseDown(evt) {
+            const pos = getColorMousePos(evt);
+
+            // 1. 센서 드래그
+            const dSensor = Math.sqrt((pos.x - sensor.x)**2 + (pos.y - sensor.y)**2);
+            if (dSensor < sensor.radius + 15) {
+                isColorDragging = true;
+                colorDragTarget = 'sensor';
+                colorDragOffsetX = pos.x - sensor.x;
+                colorDragOffsetY = pos.y - sensor.y;
+                return;
+            }
+
+            // 2. 물체의 색 모드일 경우 사물 드래그
+            if (colorSubTab === 'object') {
+                for (let i = 0; i < sceneObjects.length; i++) {
+                    const obj = sceneObjects[i];
+                    const dObj = Math.sqrt((pos.x - obj.x)**2 + (pos.y - obj.y)**2);
+                    if (dObj < obj.radius + 10) {
+                        isColorDragging = true;
+                        colorDragTarget = obj.id;
+                        colorDragOffsetX = pos.x - obj.x;
+                        colorDragOffsetY = pos.y - obj.y;
+                        return;
+                    }
+                }
+            }
+
+            // 3. 조명 드래그
+            let selectedLight = null; let minDist = Infinity;
+            const order = ['red', 'green', 'blue'];
+            for (let k of order) {
+                const lt = lights[k];
+                const dLight = Math.sqrt((pos.x - lt.x)**2 + (pos.y - lt.y)**2);
+                if (dLight < 45 && dLight < minDist) {
+                    minDist = dLight;
+                    selectedLight = k;
+                }
+            }
+
+            if (selectedLight) {
+                isColorDragging = true;
+                colorDragTarget = selectedLight;
+                colorDragOffsetX = pos.x - lights[selectedLight].x;
+                colorDragOffsetY = pos.y - lights[selectedLight].y;
+            }
+        }
+
+        function onColorMouseMove(evt) {
+            if (!isColorDragging || !colorDragTarget) return;
+            evt.preventDefault();
+            const pos = getColorMousePos(evt);
+            const w = stageCanvas.width / (window.devicePixelRatio || 1);
+            const h = stageCanvas.height / (window.devicePixelRatio || 1);
+
+            let targetX = pos.x - colorDragOffsetX;
+            let targetY = pos.y - colorDragOffsetY;
+
+            targetX = Math.max(10, Math.min(w - 10, targetX));
+            targetY = Math.max(10, Math.min(h - 10, targetY));
+
+            if (colorDragTarget === 'sensor') {
+                sensor.x = targetX;
+                sensor.y = targetY;
+            } else if (lights[colorDragTarget]) {
+                lights[colorDragTarget].x = targetX;
+                lights[colorDragTarget].y = targetY;
+            } else {
+                const obj = sceneObjects.find(o => o.id === colorDragTarget);
+                if (obj) {
+                    obj.x = targetX;
+                    obj.y = targetY;
+                }
+            }
+
+            renderColorStage();
+        }
+
+        function onColorMouseUp() {
+            isColorDragging = false;
+            colorDragTarget = null;
+        }
+
+        function onColorTouchStart(evt) {
+            onColorMouseDown(evt);
+            if (isColorDragging) evt.preventDefault();
+        }
+        function onColorTouchMove(evt) {
+            onColorMouseMove(evt);
+        }
+
+        // [빛의 삼원색 메인 그리기 및 GPU가속 합성]
+        function renderColorStage() {
+            const dpr = window.devicePixelRatio || 1;
+            const w = stageCanvas.width / dpr;
+            const h = stageCanvas.height / dpr;
+
+            stageCtx.clearRect(0, 0, w, h);
+            stageCtx.fillStyle = '#000000';
+            stageCtx.fillRect(0, 0, w, h);
+
+            // 가속 가산 합성
+            stageCtx.save();
+            stageCtx.globalCompositeOperation = 'screen';
+
+            Object.keys(lights).forEach(key => {
+                const lt = lights[key];
+                if (lt.intensity <= 0) return;
+
+                let rVal = (key === 'red') ? Math.round(255 * lt.intensity) : 0;
+                let gVal = (key === 'green') ? Math.round(255 * lt.intensity) : 0;
+                let bVal = (key === 'blue') ? Math.round(255 * lt.intensity) : 0;
+
+                const grad = stageCtx.createRadialGradient(lt.x, lt.y, 0, lt.x, lt.y, lt.radius);
+                grad.addColorStop(0, `rgba(${rVal}, ${gVal}, ${bVal}, 1.0)`);
+                grad.addColorStop(0.35, `rgba(${rVal}, ${gVal}, ${bVal}, 1.0)`);
+                grad.addColorStop(0.65, `rgba(${rVal}, ${gVal}, ${bVal}, 0.7)`);
+                grad.addColorStop(0.88, `rgba(${rVal}, ${gVal}, ${bVal}, 0.3)`);
+                grad.addColorStop(1.0, `rgba(${rVal}, ${gVal}, ${bVal}, 0.0)`);
+
+                stageCtx.fillStyle = grad;
+                stageCtx.beginPath(); stageCtx.arc(lt.x, lt.y, lt.radius, 0, Math.PI * 2); stageCtx.fill();
+            });
+            stageCtx.restore();
+
+            // 가이드선 및 전등 핸들
+            drawColorHandles();
+
+            // 물체 색상 관찰 모드 데코레이션
+            if (colorSubTab === 'object') {
+                drawColorSceneObjects();
+            }
+
+            // 센서 장치
+            drawColorSensor();
+
+            // 센서 색 디코드 분석
+            analyzeColorSensor();
+        }
+
+        function drawColorHandles() {
+            Object.keys(lights).forEach(key => {
+                const lt = lights[key];
+                stageCtx.save();
+                stageCtx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+                stageCtx.lineWidth = 1;
+                stageCtx.setLineDash([4, 4]);
+                stageCtx.beginPath(); stageCtx.arc(lt.x, lt.y, lt.radius, 0, Math.PI * 2); stageCtx.stroke();
+                stageCtx.restore();
+
+                stageCtx.beginPath(); stageCtx.arc(lt.x, lt.y, 16, 0, Math.PI * 2);
+                stageCtx.fillStyle = lt.handleColor; stageCtx.fill();
+                stageCtx.strokeStyle = '#ffffff'; stageCtx.lineWidth = 2.5; stageCtx.stroke();
+
+                stageCtx.fillStyle = '#ffffff'; stageCtx.font = 'bold 11px sans-serif'; stageCtx.textAlign = 'center';
+                let label = (key === 'red') ? '빨강' : (key === 'green') ? '초록' : '파랑';
+                stageCtx.fillText(label, lt.x, lt.y + 4);
+            });
+        }
+
+        // [수정 완료] 이미지 데이터 대신, 수학적인 광선 교차 연산으로 과일들의 옷색 반사 연출 (과부하 및 드래그 가림 현상 원천 예방)
+        function drawColorSceneObjects() {
+            sceneObjects.forEach(obj => {
+                const incoming = getIncomingRGB(obj.x, obj.y);
+                const rIn = incoming.r / 255;
+                const gIn = incoming.g / 255;
+                const bIn = incoming.b / 255;
+
+                // 반사계수 필터링 연산
+                const finalR = Math.min(255, 255 * rIn * obj.reflect.r);
+                const finalG = Math.min(255, 255 * gIn * obj.reflect.g);
+                const finalB = Math.min(255, 255 * bIn * obj.reflect.b);
+                const colorHex = `rgb(${Math.round(finalR)}, ${Math.round(finalG)}, ${Math.round(finalB)})`;
+
+                stageCtx.save();
+                stageCtx.shadowColor = 'rgba(0,0,0,0.5)'; stageCtx.shadowBlur = 4;
+                stageCtx.fillStyle = 'rgba(15, 23, 42, 0.75)'; stageCtx.strokeStyle = 'rgba(255,255,255,0.15)'; stageCtx.lineWidth = 1;
+                stageCtx.beginPath(); stageCtx.roundRect(obj.x - 26, obj.y - 26, 52, 64, 8); stageCtx.fill(); stageCtx.stroke();
+                stageCtx.restore();
+
+                // 둥근 반사 지형판
+                stageCtx.save();
+                stageCtx.fillStyle = (finalR + finalG + finalB < 15) ? '#111827' : colorHex;
+                stageCtx.beginPath(); stageCtx.arc(obj.x, obj.y, obj.radius, 0, Math.PI * 2); stageCtx.fill();
+                stageCtx.strokeStyle = 'rgba(255, 255, 255, 0.4)'; stageCtx.lineWidth = 1.5; stageCtx.stroke();
+                stageCtx.restore();
+
+                // 에모지 및 물감 명칭
+                stageCtx.save();
+                stageCtx.textAlign = 'center'; stageCtx.font = '22px sans-serif'; stageCtx.fillText(obj.emoji, obj.x, obj.y + 8);
+                stageCtx.fillStyle = '#cbd5e1'; stageCtx.font = 'bold 9px sans-serif';
+                
+                let seen = "검정 (흡수)";
+                if (finalR + finalG + finalB >= 15) {
+                    if (finalR > 120 && finalG > 120) seen = "노란색";
+                    else if (finalR > 120) seen = "빨간색";
+                    else if (finalG > 120) seen = "초록색";
+                    else if (finalB > 120) seen = "파란색";
+                }
+                stageCtx.fillText(seen, obj.x, obj.y + 32);
+                stageCtx.restore();
+            });
+        }
+
+        function drawColorSensor() {
+            stageCtx.save();
+            stageCtx.shadowColor = 'rgba(0,0,0,0.7)'; stageCtx.shadowBlur = 6;
+            stageCtx.strokeStyle = '#f8fafc'; stageCtx.lineWidth = 2.5;
+            stageCtx.beginPath(); stageCtx.arc(sensor.x, sensor.y, sensor.radius, 0, Math.PI * 2); stageCtx.stroke();
+
+            // 조준선
+            stageCtx.strokeStyle = '#ffffff'; stageCtx.lineWidth = 1.5;
+            stageCtx.beginPath();
+            stageCtx.moveTo(sensor.x - sensor.radius - 6, sensor.y); stageCtx.lineTo(sensor.x - 3, sensor.y);
+            stageCtx.moveTo(sensor.x + 3, sensor.y); stageCtx.lineTo(sensor.x + sensor.radius + 6, sensor.y);
+            stageCtx.moveTo(sensor.x, sensor.y - sensor.radius - 6); stageCtx.lineTo(sensor.x, sensor.y - 3);
+            stageCtx.moveTo(sensor.x, sensor.y + 3); stageCtx.lineTo(sensor.x, sensor.y + sensor.radius + 6);
+            stageCtx.stroke();
+
+            stageCtx.shadowBlur = 0;
+            stageCtx.beginPath(); stageCtx.arc(sensor.x, sensor.y, 7, 0, Math.PI * 2);
+            stageCtx.fillStyle = sensor.color; stageCtx.fill();
+            stageCtx.strokeStyle = '#020617'; stageCtx.lineWidth = 1.5; stageCtx.stroke();
+
+            // 센서 꼬리표
+            stageCtx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+            stageCtx.beginPath(); stageCtx.roundRect(sensor.x - 45, sensor.y - sensor.radius - 24, 90, 16, 4); stageCtx.fill();
+            stageCtx.fillStyle = '#cbd5e1'; stageCtx.font = 'bold 9px sans-serif'; stageCtx.textAlign = 'center';
+            stageCtx.fillText("🎯 빛 감지 센서", sensor.x, sensor.y - sensor.radius - 12);
+            stageCtx.restore();
+        }
+
+        // [수정 완료] 7가지 순수 합성 색상으로만 나타나도록 분류 및 스냅 알고리즘 전면 교체
+        function analyzeColorSensor() {
+            const incoming = getIncomingRGB(sensor.x, sensor.y);
+            const rCalc = incoming.r;
+            const gCalc = incoming.g;
+            const bCalc = incoming.b;
+
+            const maxVal = Math.max(rCalc, gCalc, bCalc);
+            
+            let rSnapped = 0;
+            let gSnapped = 0;
+            let bSnapped = 0;
+            let name = "검은색 (어둠)";
+            let explain = "센서 지점에 조명 빛이 닿지 않고 있습니다. 어두운 우주 공간처럼 빛이 존재하지 않는 상태입니다.";
+
+            // 빛 감지 임계치 설정
+            if (maxVal >= 20) {
+                // 각 전등 채널의 밝기가 지배적인 최대 밝기(maxVal) 대비 45% 이상 유의미한 영향이 있으면 ON으로 판정
+                const rOn = rCalc > maxVal * 0.45;
+                const gOn = gCalc > maxVal * 0.45;
+                const bOn = bCalc > maxVal * 0.45;
+
+                // 스펙트럼 색상 스냅(Snap): R, G, B 값을 0 또는 255로 디지털 정렬
+                rSnapped = rOn ? 255 : 0;
+                gSnapped = gOn ? 255 : 0;
+                bSnapped = bOn ? 255 : 0;
+
+                // 7가지 지정 색상 분기 처리
+                if (rOn && gOn && bOn) {
+                    name = "흰색 (White)";
+                    explain = "빨강, 초록, 파란색 빛이 모두 고르게 합쳐져 가장 밝은 백색광인 **흰색**을 연출합니다.";
+                } else if (rOn && gOn && !bOn) {
+                    name = "노란색 (Yellow)";
+                    explain = "<b>빨간빛(R)</b>과 <b>초록빛(G)</b>이 중첩되면서 망막의 시세포를 동시 자극하여 뇌에서 **노란색**으로 인지합니다.";
+                } else if (!rOn && gOn && bOn) {
+                    name = "청록색 (Cyan)";
+                    explain = "<b>초록빛(G)</b>과 <b>파란빛(B)</b>이 결합하여 시원하고 맑은 **청록색(사이언)**이 관찰됩니다.";
+                } else if (rOn && !gOn && bOn) {
+                    name = "자홍색 (Magenta)";
+                    explain = "<b>빨간빛(R)</b>과 <b>파란빛(B)</b>이 중첩되어 매혹적인 붉은 보랏빛의 **자홍색(마젠타)**이 형성됩니다.";
+                } else if (rOn && !gOn && !bOn) {
+                    name = "빨간색 (Red)";
+                    explain = "빨간색 조명만 비추는 영역으로, 빨간색 고유의 파장만 눈에 도달하고 있습니다.";
+                } else if (!rOn && gOn && !bOn) {
+                    name = "초록색 (Green)";
+                    explain = "초록색 조명만 비추는 영역으로, 초록색 고유의 파장만 눈에 도달하고 있습니다.";
+                } else if (!rOn && !gOn && bOn) {
+                    name = "파란색 (Blue)";
+                    explain = "파란색 조명만 비추는 영역으로, 파란색 고유의 파장만 눈에 도달하고 있습니다.";
+                }
+            }
+
+            // 센서 장비 자체의 중심 원형 색상 동기화
+            sensor.color = `rgb(${rSnapped}, ${gSnapped}, ${bSnapped})`;
+
+            // 하단 대시보드 리포트 실시간 안전 동기화
+            const previewEl = document.getElementById('sensor-color-preview');
+            const nameEl = document.getElementById('sensor-color-name');
+            const valREl = document.getElementById('sensor-val-r');
+            const valGEl = document.getElementById('sensor-val-g');
+            const valBEl = document.getElementById('sensor-val-b');
+            const explainEl = document.getElementById('sensor-explain-text');
+
+            if (previewEl) previewEl.style.backgroundColor = sensor.color;
+            if (nameEl) {
+                nameEl.innerText = name;
+                nameEl.style.color = (rSnapped + gSnapped + bSnapped > 0) ? sensor.color : '#ffffff';
+            }
+            if (valREl) valREl.innerText = rSnapped;
+            if (valGEl) valGEl.innerText = gSnapped;
+            if (valBEl) valBEl.innerText = bSnapped;
+            if (explainEl) explainEl.innerHTML = explain;
+        }
+    </script>
+</body>
+</html>
